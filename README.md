@@ -1,4 +1,18 @@
-# VeriDairy — Artisanal Traceability Platform (Module 1: Admin Dashboard)
+# Web-Based Anti-Counterfeiting and Product Verification System
+
+A web-based product traceability and authenticity verification platform for cow-based organic products.
+
+## Modules Overview
+
+- **Module 1**: Admin Dashboard and Batch Management (Implemented)
+- **Module 2**: Secure QR Token Generation & Industrial Label Printing (Implemented)
+- **Module 3**: Factory & Quality-Control Operations
+- **Module 4**: Consumer Product Verification (Simulated & Implemented)
+- **Module 5**: Scan History and Counterfeit Alerts
+
+---
+
+# Module 1 — Admin Dashboard & Batch Traceability System
 
 An enterprise-grade, full-stack traceability system built for artisanal dairy farms (A2 Bilona Ghee, Raw Milk Aged Cheese, Single-Herd A2 Milk, Cultured Probiotic Butter, and Farmstead Paneer).
 
@@ -41,8 +55,13 @@ Module 1 empowers **Managers** and **Supervisors** to maintain provenance record
 
 ## 🚀 Quick Start Guide
 
-### 1. Start the Application
-To run both the backend API and serve the production web dashboard:
+### 1. Install & Build
+```bash
+npm install
+npm run build
+```
+
+### 2. Run the Application
 ```bash
 npm start
 ```

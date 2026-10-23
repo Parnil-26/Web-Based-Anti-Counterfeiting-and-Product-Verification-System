@@ -1,8 +1,9 @@
 # Dependencies
 node_modules/
 
-# Production build
+# Production builds
 dist/
+build/
 
 # Logs
 *.log
@@ -12,9 +13,15 @@ yarn-error.log*
 
 # Environment & local files
 .env
+.env.*
+!.env.example
 .env.local
 .DS_Store
 Thumbs.db
+
+# IDE
+.vscode/
+.idea/
 
 # Temp files
 *.tmp
