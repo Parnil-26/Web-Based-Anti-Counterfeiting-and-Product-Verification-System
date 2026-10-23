@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { X, CheckCircle2, ShieldCheck, Heart, Sparkles, MapPin, Calendar, Award, ExternalLink, Milk } from 'lucide-react';
+import { X, CheckCircle2, ShieldCheck, ShieldAlert, AlertTriangle, Heart, Sparkles, MapPin, Calendar, Award, ExternalLink, Milk, Clock, Info } from 'lucide-react';
 import { api } from '../utils/api';
 
 export function ConsumerVerificationModal({ isOpen, onClose, tokenCode }) {
@@ -26,12 +26,18 @@ export function ConsumerVerificationModal({ isOpen, onClose, tokenCode }) {
 
   if (!isOpen) return null;
 
+  const isRepeatScan = data && (!data.isFirstScan || data.scannedCount > 1);
+
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-6">
       <div className="bg-white rounded-3xl max-w-xl w-full max-h-[92vh] flex flex-col shadow-2xl border border-slate-100 overflow-hidden animate-in fade-in zoom-in-95">
         
         {/* Top Header Banner */}
-        <div className="bg-gradient-to-r from-farm-700 via-emerald-600 to-teal-700 p-6 text-white text-center relative shrink-0">
+        <div className={`p-6 text-white text-center relative shrink-0 ${
+          isRepeatScan
+            ? 'bg-gradient-to-r from-amber-600 via-orange-600 to-amber-700'
+            : 'bg-gradient-to-r from-farm-700 via-emerald-600 to-teal-700'
+        }`}>
           <button
             onClick={onClose}
             className="absolute top-4 right-4 p-1.5 rounded-full bg-white/20 hover:bg-white/30 text-white transition"
@@ -39,24 +45,35 @@ export function ConsumerVerificationModal({ isOpen, onClose, tokenCode }) {
             <X className="w-5 h-5" />
           </button>
 
-          <div className="w-14 h-14 rounded-2xl bg-white text-farm-700 mx-auto flex items-center justify-center shadow-lg shadow-black/10 mb-3">
-            <ShieldCheck className="w-8 h-8" />
+          <div className={`w-14 h-14 rounded-2xl mx-auto flex items-center justify-center shadow-lg mb-3 ${
+            isRepeatScan ? 'bg-amber-100 text-amber-800' : 'bg-white text-farm-700 shadow-black/10'
+          }`}>
+            {isRepeatScan ? (
+              <AlertTriangle className="w-8 h-8 text-amber-700" />
+            ) : (
+              <ShieldCheck className="w-8 h-8 text-emerald-700" />
+            )}
           </div>
 
-          <span className="text-[10px] font-extrabold uppercase tracking-widest bg-white/20 px-3 py-1 rounded-full inline-block mb-2">
-            VeriDairy Provenance Certificate
+          <span className={`text-[10px] font-extrabold uppercase tracking-widest px-3 py-1 rounded-full inline-block mb-2 ${
+            isRepeatScan ? 'bg-amber-950/30 text-amber-100 border border-amber-300/40' : 'bg-white/20 text-white'
+          }`}>
+            {isRepeatScan ? 'Repeat Scan Alert' : 'First-Time Scan Verified'}
           </span>
 
           <h2 className="text-xl sm:text-2xl font-black tracking-tight">
-            100% Verified Authentic
+            {isRepeatScan ? 'Valid Token — Previously Scanned' : 'Issued Cryptographic Token Verified'}
           </h2>
           <p className="text-xs text-emerald-100 mt-1">
-            Consumer Traceability & Authenticity Seal
+            {isRepeatScan
+              ? 'Token matches registered batch record, but has prior scans recorded.'
+              : 'Confirmed in VeriDairy Single-Herd Lineage Ledger'
+            }
           </p>
         </div>
 
         {/* Certificate Body */}
-        <div className="overflow-y-auto p-6 space-y-6">
+        <div className="overflow-y-auto p-6 space-y-5">
           {loading ? (
             <div className="text-center py-12">
               <div className="w-8 h-8 border-3 border-emerald-600 border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
@@ -64,11 +81,36 @@ export function ConsumerVerificationModal({ isOpen, onClose, tokenCode }) {
             </div>
           ) : error ? (
             <div className="p-4 bg-rose-50 border border-rose-200 rounded-2xl text-center text-rose-800">
+              <ShieldAlert className="w-8 h-8 text-rose-600 mx-auto mb-2" />
               <p className="font-bold text-sm">Verification Failed</p>
               <p className="text-xs mt-1">{error}</p>
             </div>
           ) : data ? (
             <>
+              {/* Repeat Scan Notice Box */}
+              {isRepeatScan && (
+                <div className="p-3.5 bg-amber-50 border border-amber-200 rounded-2xl text-xs text-amber-950 space-y-1.5">
+                  <div className="flex items-center space-x-1.5 font-bold text-amber-900">
+                    <Clock className="w-4 h-4 text-amber-700 shrink-0" />
+                    <span>Scan History: {data.scannedCount} Total Scans</span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 text-[11px] pt-1">
+                    <div>
+                      <span className="text-amber-800 block">First Scanned:</span>
+                      <strong className="font-mono text-amber-950">
+                        {data.firstScannedAt ? new Date(data.firstScannedAt).toLocaleString() : 'Earlier verification record'}
+                      </strong>
+                    </div>
+                    <div>
+                      <span className="text-amber-800 block">Latest Scan:</span>
+                      <strong className="font-mono text-amber-950">
+                        {new Date(data.lastScannedAt || data.verifiedAt).toLocaleString()}
+                      </strong>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Product Card */}
               <div className="p-4 bg-emerald-50/70 border border-emerald-200/80 rounded-2xl flex items-start space-x-3">
                 <div className="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0">
@@ -185,7 +227,7 @@ export function ConsumerVerificationModal({ isOpen, onClose, tokenCode }) {
                 <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
                   <span className="text-slate-400 block mb-0.5">Quality Audit Score</span>
                   <span className="font-mono font-bold text-emerald-700">
-                    {data.batch.qualityScore || '99.5/100 (Grade A+)'}
+                    {data.batch.qualityScore || '99.5/100'}
                   </span>
                 </div>
               </div>
@@ -204,6 +246,14 @@ export function ConsumerVerificationModal({ isOpen, onClose, tokenCode }) {
                   <span className="text-slate-400">Last Verified:</span>
                   <span className="text-slate-300">{new Date(data.token.lastScannedAt).toLocaleString()}</span>
                 </div>
+              </div>
+
+              {/* Requirement 5 Disclaimer */}
+              <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-slate-600 text-[10px] leading-relaxed flex items-start space-x-2">
+                <Info className="w-3.5 h-3.5 text-slate-400 shrink-0 mt-0.5" />
+                <p>
+                  {data.disclaimer || 'Token validity confirms this cryptographic token was legitimately generated by VeriDairy. It provides token authenticity evidence rather than absolute proof of physical package contents.'}
+                </p>
               </div>
             </>
           ) : null}

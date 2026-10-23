@@ -26,3 +26,6 @@ Thumbs.db
 # Temp files
 *.tmp
 server/data/*.tmp
+.neon
+
+server/data/db.json.backup

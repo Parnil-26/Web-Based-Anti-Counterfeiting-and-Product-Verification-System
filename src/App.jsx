@@ -8,6 +8,7 @@ import { BatchDetailModal } from './components/BatchDetailModal';
 import { TokenGeneratorModal } from './components/TokenGeneratorModal';
 import { PrintableLabelsModal } from './components/PrintableLabelsModal';
 import { ConsumerVerificationModal } from './components/ConsumerVerificationModal';
+import { ConsumerVerificationPage } from './components/ConsumerVerificationPage';
 import { AuditLogsModal } from './components/AuditLogsModal';
 import { LoginModal } from './components/LoginModal';
 import { Toast } from './components/Toast';
@@ -17,6 +18,23 @@ import { downloadQrZipForBatch } from './utils/qrZipExport';
 
 export function App() {
   const { currentUser, isManager, isSupervisor, isAuthenticated } = useAuth();
+
+  // URL-driven Consumer Verification Route (/v/:tokenCode or /verify/:tokenCode)
+  const [consumerPageToken, setConsumerPageToken] = useState(() => {
+    if (typeof window === 'undefined') return null;
+    const path = window.location.pathname;
+    const match = path.match(/^\/(?:v|verify)\/([A-Za-z0-9_-]+)/);
+    return match ? match[1] : null;
+  });
+
+  useEffect(() => {
+    const onPopState = () => {
+      const match = window.location.pathname.match(/^\/(?:v|verify)\/([A-Za-z0-9_-]+)/);
+      setConsumerPageToken(match ? match[1] : null);
+    };
+    window.addEventListener('popstate', onPopState);
+    return () => window.removeEventListener('popstate', onPopState);
+  }, []);
 
   // Data states
   const [batches, setBatches] = useState([]);
@@ -67,8 +85,23 @@ export function App() {
   }, []);
 
   useEffect(() => {
-    loadData();
-  }, [loadData]);
+    if (!consumerPageToken) {
+      loadData();
+    }
+  }, [loadData, consumerPageToken]);
+
+  // If opened directly at consumer route /v/:tokenCode, render dedicated consumer page
+  if (consumerPageToken) {
+    return (
+      <ConsumerVerificationPage
+        tokenCode={consumerPageToken}
+        onGoToAdmin={() => {
+          window.history.pushState({}, '', '/');
+          setConsumerPageToken(null);
+        }}
+      />
+    );
+  }
 
   // Handlers
   const handleOpenCreateBatch = () => {
@@ -84,10 +117,10 @@ export function App() {
   const handleSaveBatch = async (formData, isEdit) => {
     try {
       if (isEdit && editingBatch) {
-        const res = await api.updateBatch(editingBatch.id, formData);
+        await api.updateBatch(editingBatch.id, formData);
         showToast('Batch Updated', `Successfully updated batch ${formData.batchNumber}`);
       } else {
-        const res = await api.createBatch(formData);
+        await api.createBatch(formData);
         showToast('Batch Created', `Batch ${formData.batchNumber} logged to traceability ledger`);
       }
       await loadData();
